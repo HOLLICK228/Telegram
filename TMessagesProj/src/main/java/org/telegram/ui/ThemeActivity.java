@@ -207,6 +207,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
     private int themeAccentListRow;
     private int themeInfoRow;
     private int chatBlurRow;
+    private int liquidGlassRow;
     @Keep
     private int pauseOnRecordRow;
     @Keep
@@ -566,6 +567,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         chatListRow = -1;
         chatListInfoRow = -1;
         chatBlurRow = -1;
+        liquidGlassRow = -1;
         pauseOnRecordRow = -1;
         pauseOnMediaRow = -1;
         stickersRow = -1;
@@ -679,6 +681,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             swipeGestureRow = rowCount++;
             swipeGestureInfoRow = rowCount++;
 
+            liquidGlassRow = rowCount++;
             nightThemeRow = rowCount++;
             browserRow = rowCount++;
             liteModeRow = rowCount++;
@@ -1370,6 +1373,28 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 });
                 builder.setNegativeButton(getString("Cancel", R.string.Cancel), null);
                 showDialog(builder.create());
+            } else if (position == liquidGlassRow) {
+                if (getParentActivity() == null) {
+                    return;
+                }
+                String[] glassItems = new String[]{
+                        getString(R.string.LiquidGlassOff),
+                        getString(R.string.LiquidGlassMatte),
+                        getString(R.string.LiquidGlassGlossy)
+                };
+                AlertDialog.Builder glassBuilder = new AlertDialog.Builder(getParentActivity());
+                glassBuilder.setTitle(getString(R.string.LiquidGlass));
+                glassBuilder.setItems(glassItems, (glassDialog, which) -> {
+                    SharedConfig.setLiquidGlassMode(which);
+                    if (listAdapter != null) {
+                        listAdapter.notifyItemChanged(liquidGlassRow);
+                    }
+                    if (listView != null) {
+                        listView.invalidateViews();
+                    }
+                });
+                glassBuilder.setNegativeButton(getString("Cancel", R.string.Cancel), null);
+                showDialog(glassBuilder.create());
             } else if (position == chatBlurRow) {
                 SharedConfig.toggleChatBlur();
                 if (view instanceof TextCheckCell) {
@@ -2513,6 +2538,10 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                         }
                         cell.setTextAndValue(getString("DistanceUnits", R.string.DistanceUnits), value, updateDistance, otherSectionRow >= 0);
                         updateDistance = false;
+                    } else if (position == liquidGlassRow) {
+                        int glassMode = SharedConfig.liquidGlassMode;
+                        String glassValue = getString(glassMode == 1 ? R.string.LiquidGlassMatte : glassMode == 2 ? R.string.LiquidGlassGlossy : R.string.LiquidGlassOff);
+                        cell.setTextAndValue(getString(R.string.LiquidGlass), glassValue, false, true);
                     } else if (position == searchEngineRow) {
                         cell.setTextAndValue(getString(R.string.SearchEngine), SearchEngine.getCurrent().name, updateSearchEngine, false);
                     } else if (position == bluetoothScoRow) {
@@ -2732,7 +2761,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             if (position == scheduleFromRow || position == distanceRow ||
                     position == scheduleToRow || position == scheduleUpdateLocationRow ||
                     position == contactsReimportRow || position == contactsSortRow ||
-                    position == bluetoothScoRow || position == searchEngineRow) {
+                    position == bluetoothScoRow || position == searchEngineRow || position == liquidGlassRow) {
                 return TYPE_TEXT_SETTING;
             } else if (position == automaticBrightnessInfoRow || position == scheduleLocationInfoRow || position == swipeGestureInfoRow || position == stickersInfoRow || position == liteModeInfoRow) {
                 return TYPE_TEXT_INFO_PRIVACY;

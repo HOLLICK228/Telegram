@@ -23,6 +23,7 @@ import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.ui.Components.GlassBubbleOverlay;
 import org.telegram.ui.Components.MotionBackgroundDrawable;
 import org.telegram.ui.Components.blur3.utils.NinePatchBuilder;
 
@@ -618,6 +619,9 @@ public class MessageDrawable extends Drawable {
         }
 
         canvas.drawPath(path, p);
+        if (paintToUse == null && SharedConfig.liquidGlassMode != 0) {
+            GlassBubbleOverlay.draw(canvas, path, bounds);
+        }
         if (gradientShader != null && isSelected && paintToUse == null) {
             int color = getColor(Theme.key_chat_outBubbleGradientSelectedOverlay);
             selectedPaint.setColor(ColorUtils.setAlphaComponent(color, (int) (Color.alpha(color) * alpha / 255f)));

@@ -1,0 +1,63 @@
+name: Build GlassGram APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths-ignore: ['docs/**', '**.md']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install NDK and CMake
+        run: |
+          sdkmanager --install "ndk;27.2.12479018" "cmake;3.22.1" "platforms;android-36" "build-tools;36.0.0"
+
+      # Optional: put your own keys in Settings -> Secrets -> Actions
+      # (TG_API_ID and TG_API_HASH from https://my.telegram.org)
+      - name: Use own api_id / api_hash if provided
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+        run: |
+          F=TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
+          if [ -n "$TG_API_ID" ] && [ -n "$TG_API_HASH" ]; then
+            sed -i "s/public static int APP_ID = [0-9]*;/public static int APP_ID = $TG_API_ID;/" $F
+            sed -i "s/public static String APP_HASH = \"[0-9a-f]*\";/public static String APP_HASH = \"$TG_API_HASH\";/" $F
+          fi
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build APK
+        run: ./gradlew :TMessagesProj_App:assembleAfatRelease --no-daemon -Dorg.gradle.jvmargs="-Xmx6g"
+
+      - name: Rename APK
+        run: cp TMessagesProj_App/build/outputs/apk/afat/release/app.apk GlassGram.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GlassGram-apk
+          path: GlassGram.apk
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          gh release create "$TAG" GlassGram.apk --title "GlassGram $TAG" --notes "Automated build" --latest

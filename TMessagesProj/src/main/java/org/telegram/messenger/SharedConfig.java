@@ -318,6 +318,7 @@ public class SharedConfig {
     public static int fontSize = 16;
     public static boolean fontSizeIsDefault;
     public static int bubbleRadius = 17;
+    public static int liquidGlassMode = 0; // 0 = off, 1 = matte, 2 = glossy
     public static int ivFontSize = 16;
     public static boolean proxyRotationEnabled;
     public static int proxyRotationTimeout;
@@ -613,6 +614,7 @@ public class SharedConfig {
             fontSize = preferences.getInt("fons_size", AndroidUtilities.isTablet() && !AndroidUtilities.isFold() ? 18 : 16);
             fontSizeIsDefault = !preferences.contains("fons_size");
             bubbleRadius = preferences.getInt("bubbleRadius", 17);
+            liquidGlassMode = preferences.getInt("liquidGlassMode", 0);
             ivFontSize = preferences.getInt("iv_font_size", fontSize);
             allowBigEmoji = preferences.getBoolean("allowBigEmoji", true);
             useSystemEmoji = preferences.getBoolean("useSystemEmoji", false);
@@ -1377,6 +1379,13 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("pauseMusicOnMedia", pauseMusicOnMedia);
+        editor.apply();
+    }
+
+    public static void setLiquidGlassMode(int mode) {
+        liquidGlassMode = mode;
+        SharedPreferences.Editor editor = MessagesController.getGlobalMainSettings().edit();
+        editor.putInt("liquidGlassMode", mode);
         editor.apply();
     }
 
